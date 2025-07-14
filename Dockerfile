@@ -1,18 +1,18 @@
-# استخدم Python 3.10
+# استخدم نسخة خفيفة من Python 3.10
 FROM python:3.10-slim
 
-# تعيين مجلد العمل
+# تعيين مجلد العمل داخل الحاوية
 WORKDIR /app
 
-# نسخ الملفات
+# نسخ جميع ملفات المشروع إلى الحاوية
 COPY . .
 
 # تثبيت المتطلبات
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# فتح المنفذ
+# فتح المنفذ المطلوب
 EXPOSE 10000
 
-# أمر التشغيل
+# تشغيل التطبيق باستخدام gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
