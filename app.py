@@ -6,64 +6,60 @@ import numpy as np
 from PIL import Image
 import io
 
+# إعداد التطبيق
 app = Flask(__name__)
-CORS(app)  # <== مهم جدًا لحل مشكلة CORS
+CORS(app)
 
-# تحميل النموذج الثنائي
-model = load_model('binairy.h5')
+# تحميل النموذج المدرب بصيغة .keras
+model = load_model('binary_model.keras')  # تأكد أن الملف موجود في نفس المسار
 
-def predict_image(image):
-    # تحويل الصورة إلى صورة رمادية
+# إعدادات الصورة
+IMG_SIZE = (64, 64)
+THRESHOLD = 0.3  # العتبة المستخدمة للتصنيف
+
+def preprocess_image(image):
+    # تحويل إلى رمادي
     if image.mode != 'L':
         image = image.convert('L')
-    
-    # تغيير حجم الصورة إلى 64x64 (حسب النموذج الجديد)
-    image = image.resize((64, 64))
-    
-    # تحويل الصورة إلى مصفوفة
-    image_array = np.array(image) / 255.0
-    
-    # إضافة بعد القناة (64, 64, 1)
-    image_array = np.expand_dims(image_array, axis=-1)
-    
-    # إضافة بعد الدفعة (1, 64, 64, 1)
-    image_array = np.expand_dims(image_array, axis=0)
-    
-    # التنبؤ
-    prediction = model.predict(image_array)
-    
-    # تحويل التنبؤ إلى فئة (Normal أو Pneumonia)
-    threshold = 0.3  # نفس العتبة المستخدمة في التدريب
-    predicted_class = 'Pneumonia' if prediction[0][0] > threshold else 'Normal'
-    
-    return predicted_class, prediction[0][0]
+
+    # تغيير الحجم
+    image = image.resize(IMG_SIZE)
+
+    # تحويل إلى مصفوفة NumPy
+    img_array = np.array(image) / 255.0  # تطبيع
+    img_array = np.expand_dims(img_array, axis=-1)  # (64, 64, 1)
+    img_array = np.expand_dims(img_array, axis=0)   # (1, 64, 64, 1)
+    return img_array
+
+def predict_image(image):
+    img = preprocess_image(image)
+    prediction = model.predict(img)[0][0]
+    label = "Pneumonia" if prediction > THRESHOLD else "Normal"
+    return label, prediction
+
+@app.route('/')
+def index():
+    return "✅ Binary Chest X-Ray Classification API is running!"
 
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
-        return jsonify({'error': 'لا يوجد ملف'}), 400
+        return jsonify({'error': 'No file provided'}), 400
+
     file = request.files['file']
-    
     if file.filename == '':
-        return jsonify({'error': 'لم يتم اختيار ملف'}), 400
-    
+        return jsonify({'error': 'Empty filename'}), 400
+
     try:
-        # تحويل الصورة المرفوعة إلى صورة باستخدام PIL
         image = Image.open(io.BytesIO(file.read()))
-        prediction, confidence = predict_image(image)
-        
+        label, confidence = predict_image(image)
         return jsonify({
-            'prediction': prediction,
-            'confidence': float(confidence)
+            'prediction': label,
+            'confidence': round(float(confidence), 4)
         })
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-
-@app.route('/')
-def home():
-    return "مرحباً بك في مختبر الذكاء الاصطناعي"
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
+
