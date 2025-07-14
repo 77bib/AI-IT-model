@@ -1,18 +1,19 @@
-# استخدم نسخة خفيفة من Python 3.10
+# استخدم صورة Python الحديثة المتوافقة مع TensorFlow 2.13
 FROM python:3.10-slim
 
-# تعيين مجلد العمل داخل الحاوية
+# إعداد مجلد العمل داخل الحاوية
 WORKDIR /app
 
-# نسخ جميع ملفات المشروع إلى الحاوية
+# نسخ كل ملفات المشروع إلى الحاوية
 COPY . .
 
-# تثبيت المتطلبات
+# تحديث pip وتثبيت المتطلبات
 RUN pip install --upgrade pip && \
+    pip install tensorflow==2.13.0 && \
     pip install -r requirements.txt
 
-# فتح المنفذ المطلوب
+# فتح المنفذ الذي سيعمل عليه التطبيق
 EXPOSE 10000
 
-# تشغيل التطبيق باستخدام gunicorn
+# أمر تشغيل التطبيق باستخدام gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
