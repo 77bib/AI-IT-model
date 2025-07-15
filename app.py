@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ✅ تحميل النموذج المعدل بصيغة habib.keras
-model = load_model('habib.keras')
+model = load_model('habib.h5')
 
 # إعدادات الصورة
 IMG_SIZE = (64, 64)
