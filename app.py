@@ -10,25 +10,20 @@ import io
 app = Flask(__name__)
 CORS(app)
 
-# تحميل النموذج المدرب بصيغة .keras
-model = load_model('binary_model.keras')  # تأكد أن الملف موجود في نفس المسار
+# ✅ تحميل النموذج المعدل بصيغة habib.keras
+model = load_model('habib.keras')
 
 # إعدادات الصورة
 IMG_SIZE = (64, 64)
 THRESHOLD = 0.3  # العتبة المستخدمة للتصنيف
 
 def preprocess_image(image):
-    # تحويل إلى رمادي
     if image.mode != 'L':
         image = image.convert('L')
-
-    # تغيير الحجم
     image = image.resize(IMG_SIZE)
-
-    # تحويل إلى مصفوفة NumPy
-    img_array = np.array(image) / 255.0  # تطبيع
-    img_array = np.expand_dims(img_array, axis=-1)  # (64, 64, 1)
-    img_array = np.expand_dims(img_array, axis=0)   # (1, 64, 64, 1)
+    img_array = np.array(image) / 255.0
+    img_array = np.expand_dims(img_array, axis=-1)
+    img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
 def predict_image(image):
@@ -62,4 +57,3 @@ def predict():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
-
