@@ -1,17 +1,17 @@
-# استخدم Python 3.10 وصورة تدعم TensorFlow 2.13
-FROM python:3.10-slim
+# Use official Python image
+FROM python:3.11-slim
 
+# Set working directory
 WORKDIR /app
 
-# انسخ ملفات المشروع
+# Copy all files
 COPY . .
 
-# ثبّت tensorflow مع الإصدار المطلوب
-RUN pip install --upgrade pip && \
-    pip install tensorflow==2.13.0 && \
-    pip install -r requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 10000
+# Expose the port
+EXPOSE 5001
 
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
-
+# Run the app
+CMD ["python", "app.py"]
